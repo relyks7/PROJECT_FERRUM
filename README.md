@@ -1,6 +1,6 @@
 **PROJECT_FERRUM**
 
-A Metal-optimised kernel with fused ops for extremely fast and efficient single-device training.
+Metal-optimised kernels with fused ops for extremely fast and efficient single-device training.
 
 Makes sparse attention possible in sub-quadratic time.
 
