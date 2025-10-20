@@ -9,8 +9,7 @@ kernel void matmul_forward(
     constant uint& n [[buffer(4)]],
     constant uint& p [[buffer(5)]],
     uint2 i [[thread_position_in_threadgroup]],
-    uint2 j [[threadgroup_position_in_grid]],
-    uint2 k [[thread_position_in_grid]]
+    uint2 j [[threadgroup_position_in_grid]]
 )
 {
     threadgroup float tA[T][T];
@@ -22,19 +21,19 @@ kernel void matmul_forward(
         if (row < m && (curtile*T + i.x) < n)
             tA[i.y][i.x] = A[row*n + curtile*T + i.x];
         else
-            tA[i.y][i.x] = 0;
+            tA[i.y][i.x] = 0.0f;
 
         if ((curtile*T + i.y) < n && col < p)
             tB[i.y][i.x] = B[(curtile*T + i.y)*p + col];
         else
-            tB[i.y][i.x] = 0;
+            tB[i.y][i.x] = 0.0f;
         threadgroup_barrier(mem_flags::mem_threadgroup);
         for (int idx=0;idx<T;idx++){
             acc+=tA[i.y][idx]*tB[idx][i.x];
         }
         threadgroup_barrier(mem_flags::mem_threadgroup);
     }
-    if (row<n&&col<p){
+    if (row<m&&col<p){
         C[row*p+col]=acc;
     }
 }
