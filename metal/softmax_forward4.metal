@@ -1,6 +1,6 @@
 #include <metal_stdlib>
 using namespace metal;
-kernel void sum_forward2(
+kernel void sum_forward4(
     device const float* reduced_sum [[buffer(0)]],
     device float* C [[buffer(1)]],
     constant uint& n [[buffer(2)]],
