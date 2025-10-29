@@ -2,7 +2,7 @@
 using namespace metal;
 #define T 128
 #define WARPS 16
-kernel void sum_forward(
+kernel void sum_forward1(
     device const float* A [[buffer(0)]],
     device float* sum_out [[buffer(1)]],
     constant uint& n [[buffer(2)]],
