@@ -2,11 +2,11 @@
 using namespace metal;
 #define T 128
 #define WARPS 16
-kernel void softmax_forward3(
-    device const float* A [[buffer(0)]],
-    device float* sum_out [[buffer(1)]],
-    constant uint& n [[buffer(2)]],
-    constant float& global_max [[buffer(3)]],
+kernel void softmax_backward1(
+    device const float* C [[buffer(0)]],
+    device const float* C_grad [[buffer(1)]],
+    device float* sum_out [[buffer(2)]],
+    constant uint& n [[buffer(3)]],
     uint i [[thread_position_in_threadgroup]],
     uint j [[thread_position_in_grid]],
     uint k [[threadgroup_position_in_grid]],
@@ -16,7 +16,7 @@ kernel void softmax_forward3(
     if (j>=n){
         return;
     }
-    float val=exp(A[j]-global_max);
+    float val=C[j]*C_grad[j];
     float local_sum=simdgroup_reduce_sum(val);
     threadgroup float ps[WARPS];
     if (simd_is_first()){
