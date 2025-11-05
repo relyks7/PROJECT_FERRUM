@@ -12,6 +12,6 @@ kernel void layernorm_forward5(
     uint i[[thread_position_in_grid]]
 ) {
     if (i<n){
-        C[i]=gamma[i]* (A[i]-mu[0])/sqrt(sigma2[0]+eps) + beta[i];
+        C[i]=gamma[i] * (A[i]-mu[0])/sqrt(sigma2[0]+eps) + beta[i];
     }
 }
