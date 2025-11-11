@@ -12,4 +12,8 @@ kernel void softmax_backward2(
     if (i<n){
         atomic_fetch_add_explicit(&s[0], reduced_sum[i], memory_order_relaxed);
     }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+    if (i<n){
+        A_grad[i]=C[i]*(C_grad[i]-s[0]);
+    }
 }
