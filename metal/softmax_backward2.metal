@@ -1,19 +1,32 @@
 #include <metal_stdlib>
 using namespace metal;
+#define T 128
+#define WARPS 16
 kernel void softmax_backward2(
-    device const float* reduced_sum [[buffer(0)]],
-    device const float* C [[buffer(1)]],
-    device const float* C_grad [[buffer(2)]],
-    device float* A_grad [[buffer(3)]],
-    device float* s [[buffer(4)]],
-    constant uint& n [[buffer(5)]],
-    uint i[[thread_position_in_grid]]
+    device const float* A [[buffer(0)]],
+    device float* sum_out [[buffer(1)]],
+    constant uint& n [[buffer(2)]],
+    uint i [[thread_position_in_threadgroup]],
+    uint j [[thread_position_in_grid]],
+    uint k [[threadgroup_position_in_grid]],
+    uint si [[thread_index_in_simdgroup]],
+    uint sj [[simdgroup_index_in_threadgroup]]
 ) {
-    if (i<n){
-        atomic_fetch_add_explicit(&s[0], reduced_sum[i], memory_order_relaxed);
+    if (j>=n){
+        return;
+    }
+    float val=A[j];
+    float local_sum=simdgroup_reduce_sum(val);
+    threadgroup float ps[WARPS];
+    if (simd_is_first()){
+        ps[sj]=local_sum;
     }
     threadgroup_barrier(mem_flags::mem_threadgroup);
-    if (i<n){
-        A_grad[i]=C[i]*(C_grad[i]-s[0]);
+    if (sj==0){
+        float xs = (si < WARPS) ? ps[si] : 0.0f;
+        float final_sum=simdgroup_reduce_sum(xs);
+        if (simd_is_first() && i==0){
+            sum_out[k]=final_sum;
+        }
     }
 }

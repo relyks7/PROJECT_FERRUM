@@ -2,13 +2,12 @@
 using namespace metal;
 #define T 128
 #define WARPS 16
-kernel void layernorm_backward1(
-    device const float* a [[buffer(0)]],
-    device const float* gamma [[buffer(1)]],
-    device const float* mu [[buffer(2)]],
-    device float* sum_out_1 [[buffer(3)]],
-    device float* sum_out_2 [[buffer(4)]],
-    constant uint& n [[buffer(5)]],
+kernel void layernorm_backward2(
+    device const float* A1 [[buffer(0)]],
+    device float* sum_out_1 [[buffer(1)]],
+    device const float* A2 [[buffer(2)]],
+    device float* sum_out_2 [[buffer(3)]],
+    constant uint& n [[buffer(4)]],
     uint i [[thread_position_in_threadgroup]],
     uint j [[thread_position_in_grid]],
     uint k [[threadgroup_position_in_grid]],
@@ -18,9 +17,9 @@ kernel void layernorm_backward1(
     if (j>=n){
         return;
     }
-    float val1=gamma[j]*a[j];
+    float val1=A1[j];
     float local_sum1=simdgroup_reduce_sum(val1);
-    float val2=gamma[j]*a[j]*(a[j]-mu[0]);
+    float val2=A2[j];
     float local_sum2=simdgroup_reduce_sum(val2);
     threadgroup float ps1[WARPS];
     threadgroup float ps2[WARPS];
