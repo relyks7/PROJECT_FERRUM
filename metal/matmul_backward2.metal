@@ -4,11 +4,11 @@ using namespace metal;
 kernel void matmul_backward2(
     device const float* A [[buffer(0)]],
     device const float* B [[buffer(1)]],
-    device float* B_grad [[buffer(3)]],
-    device float* C_grad [[buffer(4)]],
-    constant uint& m [[buffer(5)]],
-    constant uint& n [[buffer(6)]],
-    constant uint& p [[buffer(7)]],
+    device float* B_grad [[buffer(2)]],
+    device float* C_grad [[buffer(3)]],
+    constant uint& m [[buffer(4)]],
+    constant uint& n [[buffer(5)]],
+    constant uint& p [[buffer(6)]],
     uint2 i [[thread_position_in_threadgroup]],
     uint2 j [[threadgroup_position_in_grid]]
 )
