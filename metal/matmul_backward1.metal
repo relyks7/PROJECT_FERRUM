@@ -24,7 +24,7 @@ kernel void matmul_backward1(
             tC_grad[i.y][i.x] = 0.0f;
 
         if ((curtile*T + i.y) < p && col < n)
-            tB_t[i.y][i.x] = B[(curtile*T + i.y)*n + col];
+            tB_t[i.y][i.x] = B[col*p + (curtile*T + i.y)];
         else
             tB_t[i.y][i.x] = 0.0f;
         threadgroup_barrier(mem_flags::mem_threadgroup);

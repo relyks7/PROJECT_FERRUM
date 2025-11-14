@@ -20,9 +20,9 @@ kernel void matmul_backward2(
     acc=0;
     for (int curtile=0;curtile<(m+T-1)/T;curtile++){
         if ((curtile*T + i.x) < m && row < n)
-            tA_t[i.x][i.y] = A[row*n + (curtile*T + i.x)];
+            tA_t[i.y][i.x] = A[row*n + (curtile*T + i.x)];
         else
-            tA_t[i.x][i.y] = 0.0f;
+            tA_t[i.y][i.x] = 0.0f;
         if ((curtile*T + i.y) < m && col < p)
             tC_grad[i.y][i.x] = C_grad[(curtile*T + i.y) * p + col];
         else
