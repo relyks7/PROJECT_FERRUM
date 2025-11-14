@@ -1,10 +1,10 @@
 #include <metal_stdlib>
 using namespace metal;
 #define T 16
-kernel void matmul_backward2(
-    device const float* A [[buffer(0)]],
-    device float* B_grad [[buffer(1)]],
-    device float* C_grad [[buffer(2)]],
+kernel void hebbian_oja_backward5(
+    device const float* H_grad [[buffer(0)]],
+    device const float* X [[buffer(1)]],
+    device float* Y_grad [[buffer(2)]],
     constant uint& m [[buffer(3)]],
     constant uint& n [[buffer(4)]],
     constant uint& p [[buffer(5)]],
@@ -12,27 +12,27 @@ kernel void matmul_backward2(
     uint2 j [[threadgroup_position_in_grid]]
 )
 {
-    threadgroup float tC_grad[T][T];
-    threadgroup float tA_t[T][T];
+    threadgroup float tH_grad_t[T][T];
+    threadgroup float tX[T][T];
     uint row=j.y*T+i.y;
     uint col=j.x*T+i.x;
     float acc=0;
-    acc=0;
     for (int curtile=0;curtile<(m+T-1)/T;curtile++){
         if ((curtile*T + i.x) < m && row < n)
-            tA_t[i.x][i.y] = A[row*n + (curtile*T + i.x)];
+            tH_grad_t[i.x][i.y] = H_grad[(curtile*T+i.x)*n+row];
         else
-            tA_t[i.x][i.y] = 0.0f;
-        if ((curtile*T + i.y) < m && col < p)
-            tC_grad[i.y][i.x] = C_grad[(curtile*T + i.y) * p + col];
+            tH_grad_t[i.x][i.y] = 0.0f;
+
+        if (col < p && (curtile*T+i.x)<m)
+            tX[i.x][i.y] = X[(curtile*T + i.x)*p+col];
         else
-            tC_grad[i.y][i.x] = 0.0f;
+            tX[i.x][i.y] = 0.0f;
         threadgroup_barrier(mem_flags::mem_threadgroup);
         for (int idx=0;idx<T;idx++){
-            acc+=tC_grad[idx][i.x]*tA_t[idx][i.y];
+            acc+=tH_grad_t[idx][i.y]*tX[idx][i.x];
         }
     }
     if (row<n&&col<p){
-        B_grad[row*p+col]=acc;
+        Y_grad[row*p+col]+=acc;
     }
 }

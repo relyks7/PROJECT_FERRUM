@@ -1,10 +1,10 @@
 #include <metal_stdlib>
 using namespace metal;
 #define T 16
-kernel void matmul_forward(
-    device const float* A [[buffer(0)]],
-    device const float* B [[buffer(1)]],
-    device float* C [[buffer(2)]],
+kernel void hebbian_oja_backward7(
+    device const float* Z_grad [[buffer(0)]],
+    device const float* V [[buffer(1)]],
+    device float* U_grad [[buffer(2)]],
     constant uint& m [[buffer(3)]],
     constant uint& n [[buffer(4)]],
     constant uint& p [[buffer(5)]],
@@ -12,27 +12,27 @@ kernel void matmul_forward(
     uint2 j [[threadgroup_position_in_grid]]
 )
 {
-    threadgroup float tA[T][T];
-    threadgroup float tB[T][T];
+    threadgroup float tZ_grad[T][T];
+    threadgroup float tV[T][T];
     uint row=j.y*T+i.y;
     uint col=j.x*T+i.x;
     float acc=0;
     for (int curtile=0;curtile<(n+T-1)/T;curtile++){
         if (row < m && (curtile*T + i.x) < n)
-            tA[i.y][i.x] = A[row*n + curtile*T + i.x];
+            tZ_grad[i.x][i.y] = Z_grad[row*n + curtile*T + i.x];
         else
-            tA[i.y][i.x] = 0.0f;
+            tZ_grad[i.x][i.y] = 0.0f;
 
         if ((curtile*T + i.y) < n && col < p)
-            tB[i.y][i.x] = B[(curtile*T + i.y)*p + col];
+            tV[i.x][i.y] = V[(curtile*T + i.y)*p + col];
         else
-            tB[i.y][i.x] = 0.0f;
+            tV[i.x][i.y] = 0.0f;
         threadgroup_barrier(mem_flags::mem_threadgroup);
         for (int idx=0;idx<T;idx++){
-            acc+=tA[i.y][idx]*tB[idx][i.x];
+            acc+=tZ_grad[idx][i.y]*tV[i.x][idx];
         }
     }
     if (row<m&&col<p){
-        C[row*p+col]=acc;
+        U_grad[row*p+col]+=acc;
     }
 }
