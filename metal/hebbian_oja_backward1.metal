@@ -12,8 +12,8 @@ kernel void hebbian_oja_backward1(
     uint i[[thread_position_in_grid]]
 ) {
     if (i<n){
-        eta_grad[i]=C_grad[i]*(H[i]-N[i]);
-        H_grad[i]=C_grad[i]*eta[i];
-        N_grad[i]=-C_grad[i]*eta[i];
+        eta_grad[i]+=C_grad[i]*(H[i]-N[i]);
+        H_grad[i]+=C_grad[i]*eta[i];
+        N_grad[i]+=-C_grad[i]*eta[i];
     }
 }

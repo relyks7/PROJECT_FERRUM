@@ -33,6 +33,6 @@ kernel void matmul_backward2(
         }
     }
     if (row<n&&col<p){
-        B_grad[row*p+col]=acc;
+        B_grad[row*p+col]+=acc;
     }
 }
