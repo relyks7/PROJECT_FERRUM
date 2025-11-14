@@ -19,19 +19,18 @@ kernel void matmul_forward(
     float acc=0;
     for (int curtile=0;curtile<(n+T-1)/T;curtile++){
         if (row < m && (curtile*T + i.x) < n)
-            tA[i.y][i.x] = A[row*n + curtile*T + i.x];
+            tA[i.x][i.y] = A[row*n + curtile*T + i.x];
         else
-            tA[i.y][i.x] = 0.0f;
+            tA[i.x][i.y] = 0.0f;
 
         if ((curtile*T + i.y) < n && col < p)
-            tB[i.y][i.x] = B[(curtile*T + i.y)*p + col];
+            tB[i.x][i.y] = B[(curtile*T + i.y)*p + col];
         else
-            tB[i.y][i.x] = 0.0f;
+            tB[i.x][i.y] = 0.0f;
         threadgroup_barrier(mem_flags::mem_threadgroup);
         for (int idx=0;idx<T;idx++){
-            acc+=tA[i.y][idx]*tB[idx][i.x];
+            acc+=tA[idx][i.y]*tB[i.x][idx];
         }
-        threadgroup_barrier(mem_flags::mem_threadgroup);
     }
     if (row<m&&col<p){
         C[row*p+col]=acc;

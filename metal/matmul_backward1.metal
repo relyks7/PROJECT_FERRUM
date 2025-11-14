@@ -2,13 +2,12 @@
 using namespace metal;
 #define T 16
 kernel void matmul_backward1(
-    device const float* A [[buffer(0)]],
-    device const float* B [[buffer(1)]],
+    device const float* B [[buffer(0)]],
+    device const float* C_grad [[buffer(1)]],
     device float* A_grad [[buffer(2)]],
-    device float* C_grad [[buffer(3)]],
-    constant uint& m [[buffer(4)]],
-    constant uint& n [[buffer(5)]],
-    constant uint& p [[buffer(6)]],
+    constant uint& m [[buffer(3)]],
+    constant uint& n [[buffer(4)]],
+    constant uint& p [[buffer(5)]],
     uint2 i [[thread_position_in_threadgroup]],
     uint2 j [[threadgroup_position_in_grid]]
 )
@@ -20,19 +19,18 @@ kernel void matmul_backward1(
     float acc=0;
     for (int curtile=0;curtile<(p+T-1)/T;curtile++){
         if (row < m && (curtile*T + i.x) < p)
-            tC_grad[i.y][i.x] = C_grad[row*p + curtile*T + i.x];
+            tC_grad[i.x][i.y] = C_grad[row*p + curtile*T + i.x];
         else
-            tC_grad[i.y][i.x] = 0.0f;
+            tC_grad[i.x][i.y] = 0.0f;
 
         if ((curtile*T + i.y) < p && col < n)
-            tB_t[i.y][i.x] = B[col*p + (curtile*T + i.y)];
+            tB_t[i.x][i.y] = B[col * p + (curtile*T + i.y)];
         else
-            tB_t[i.y][i.x] = 0.0f;
+            tB_t[i.x][i.y] = 0.0f;
         threadgroup_barrier(mem_flags::mem_threadgroup);
         for (int idx=0;idx<T;idx++){
-            acc+=tC_grad[i.y][idx]*tB_t[idx][i.x];
+            acc+=tC_grad[idx][i.y]*tB_t[i.x][idx];
         }
-        threadgroup_barrier(mem_flags::mem_threadgroup);
     }
     if (row<m&&col<n){
         A_grad[row*n+col]=acc;

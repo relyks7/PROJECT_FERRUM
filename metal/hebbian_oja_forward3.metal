@@ -1,10 +1,10 @@
 #include <metal_stdlib>
 using namespace metal;
 #define T 16
-kernel void hebbian_oja_forward1(
-    device const float* A [[buffer(0)]],
-    device float* W [[buffer(1)]],
-    device const float* B [[buffer(2)]],
+kernel void hebbian_oja_forward3(
+    device const float* D [[buffer(0)]],
+    device const float* E [[buffer(1)]],
+    device float* W [[buffer(2)]],
     constant uint& m [[buffer(3)]],
     constant uint& n [[buffer(4)]],
     constant uint& p [[buffer(5)]],
@@ -12,26 +12,25 @@ kernel void hebbian_oja_forward1(
     uint2 j [[threadgroup_position_in_grid]]
 )
 {
-    threadgroup float tA[T][T];
-    threadgroup float tB_t[T][T];
+    threadgroup float tE[T][T];
+    threadgroup float tD_t[T][T];
     uint row=j.y*T+i.y;
     uint col=j.x*T+i.x;
     float acc=0;
     for (int curtile=0;curtile<(p+T-1)/T;curtile++){
         if (row < m && (curtile*T + i.x) < p)
-            tA[i.y][i.x] = A[row*p + curtile*T + i.x];
+            tE[i.x][i.y] = E[row*p + curtile*T + i.x];
         else
-            tA[i.y][i.x] = 0.0f;
+            tE[i.x][i.y] = 0.0f;
 
         if ((curtile*T + i.y) < p && col < n)
-            tB_t[i.y][i.x] = B[col*p + (curtile*T + i.y)];
+            tD_t[i.x][i.y] = D[col * p + (curtile*T + i.y)];
         else
-            tB_t[i.y][i.x] = 0.0f;
+            tD_t[i.x][i.y] = 0.0f;
         threadgroup_barrier(mem_flags::mem_threadgroup);
         for (int idx=0;idx<T;idx++){
-            acc+=tA[i.y][idx]*tB_t[idx][i.x];
+            acc+=tE[idx][i.y]*tD_t[i.x][idx];
         }
-        threadgroup_barrier(mem_flags::mem_threadgroup);
     }
     if (row<m&&col<n){
         W[row*n+col]=acc;
