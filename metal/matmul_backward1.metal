@@ -1,6 +1,6 @@
 #include <metal_stdlib>
 using namespace metal;
-#define T 16
+#define T 32
 kernel void matmul_backward1(
     device const float* B [[buffer(0)]],
     device float* A_grad [[buffer(1)]],
