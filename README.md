@@ -1,5 +1,5 @@
 **PROJECT_FERRUM**
 
-ML training framework from scratch.
+A collection of reference metal kernels.
 
-Current goal: Single-device trained BDH-GPU.
+Foundational basis for PROJECT_CEREBRUM
